@@ -12,17 +12,17 @@ author       'Bubble'
 --[[ Manifest ]]--
 shared_scripts {
 	'@ox_lib/init.lua',
-  '@qbx_core/modules/lib.lua',
+  '@qbx_core/modules/lib.lua'
 }
 
 client_scripts {
 	'client/main.lua',
-  '@qbx_core/modules/playerdata.lua',
+  '@qbx_core/modules/playerdata.lua'
 }
 
 server_scripts {
 	'@oxmysql/lib/MySQL.lua',
-  'server/main.lua',
+  'server/main.lua'
 }
 
 ui_page 'web/build/index.html'
@@ -32,4 +32,5 @@ files {
   'web/build/**/*',
   'config/client.lua',
   'config/shared.lua',
+  'config/config.lua'
 }

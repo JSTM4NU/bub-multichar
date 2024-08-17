@@ -1,25 +1,26 @@
-local function GiveStarterItems(source)
-    local src = source
-    local Player = QBCore.Functions.GetPlayer(src)
-
-    for _, v in pairs(QBCore.Shared.StarterItems) do
-        local info = {}
-        if v.item == "id_card" then
-            info.citizenid = Player.PlayerData.citizenid
-            info.firstname = Player.PlayerData.charinfo.firstname
-            info.lastname = Player.PlayerData.charinfo.lastname
-            info.birthdate = Player.PlayerData.charinfo.birthdate
-            info.gender = Player.PlayerData.charinfo.gender
-            info.nationality = Player.PlayerData.charinfo.nationality
-        elseif v.item == "driver_license" then
-            info.firstname = Player.PlayerData.charinfo.firstname
-            info.lastname = Player.PlayerData.charinfo.lastname
-            info.birthdate = Player.PlayerData.charinfo.birthdate
-            info.type = "Class C Driver License"
-        end
-        Player.Functions.AddItem(v.item, v.amount, false, info)
+local starterItems = { -- Character starting items
+  { name = 'phone', amount = 1 },
+  { 
+    name = 'id_card', 
+    amount = 1, 
+    metadata = function(source)
+      if GetResourceState('qbx_idcard') ~= 'started' then
+        error('qbx_idcard resource not found. Required to give an id_card as a starting item')
+      end
+      return exports.qbx_idcard:GetMetaLicense(source, {'id_card'})
     end
-end
+  },
+  { 
+    name = 'driver_license', 
+    amount = 1, 
+    metadata = function(source)
+      if GetResourceState('qbx_idcard') ~= 'started' then
+        error('qbx_idcard resource not found. Required to give an id_card as a starting item')
+      end
+      return exports.qbx_idcard:GetMetaLicense(source, {'driver_license'})
+    end
+  },
+}
 
 local function fetchPlayerSkin(citizenId)
   return MySQL.single.await('SELECT * FROM playerskins WHERE citizenid = ? AND active = 1', {citizenId})
@@ -51,6 +52,22 @@ local function fetchAllPlayerEntities(license2, license)
   end
 
   return chars
+end
+
+---@param source Source
+local function giveStarterItems(source)
+  	if GetResourceState('ox_inventory') == 'missing' then return end
+	while not exports.ox_inventory:GetInventory(source) do
+		Wait(100)
+	end
+	for i = 1, #starterItems do
+		local item = starterItems[i]
+		if item.metadata and type(item.metadata) == 'function' then
+			exports.ox_inventory:AddItem(source, item.name, item.amount, item.metadata(source))
+		else
+			exports.ox_inventory:AddItem(source, item.name, item.amount, item.metadata)
+		end
+	end
 end
 
 lib.callback.register('bub-multichar:server:getCharacters', function(source)
@@ -102,7 +119,7 @@ lib.callback.register('bub-multichar:server:createCharacter', function(source, d
   local success = exports.qbx_core:Login(source, nil, newData)
   if not success then return end
 
-  GiveStarterItems(source)
+  giveStarterItems(source)
   exports.qbx_core:SetPlayerBucket(source, 0)
 
   lib.print.info(('%s has created a character'):format(GetPlayerName(source)))

@@ -90,6 +90,7 @@ lib.callback.register('bub-multichar:server:getCharacters', function(source)
     local char = chars[i]
     sortedChars[char.cid] = char
   end
+  print(allowedAmount)
   return sortedChars, allowedAmount
 end)
 
